@@ -21,6 +21,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller
+          pip install -r Mnyazi_Tracker_Package/requirements.txt
 
       - name: Install Inno Setup
         run: choco install innosetup -y
@@ -31,30 +32,39 @@ jobs:
       - name: Prepare staging
         shell: pwsh
         run: |
-          if (Test-Path "installer_staging") { Remove-Item -Recurse -Force installer_staging }
-          New-Item -ItemType Directory -Path installer_staging | Out-Null
-          New-Item -ItemType Directory -Path installer_staging/files | Out-Null
-          Copy-Item -Path "dist/main.exe" -Destination "installer_staging/files/main.exe"
-          Copy-Item -Path "Mnyazi_Tracker_Package/assets" -Destination "installer_staging/files/assets" -Recurse
+          if (Test-Path "installer_staging") { Remove-Item -Recurse -Force "installer_staging" }
+          New-Item -ItemType Directory -Path "installer_staging/files" | Out-Null
+          Copy-Item "dist/main.exe" "installer_staging/files/main.exe"
+          Copy-Item -Recurse -Force "Mnyazi_Tracker_Package/assets" "installer_staging/files/assets"
 
-      - name: Run Inno Setup
+      - name: 🧱 Build Inno Setup Installer
         shell: pwsh
         run: |
+          # Set path to installer script
           $issPath = "Mnyazi_Tracker_Package/installer_script.iss"
-          if (Test-Path $issPath) {
-            & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" $issPath
-          } else {
-            Write-Host "❌ installer_script.iss not found at $issPath"
-            exit 1
-          }
+
+          # Comment out SetupIconFile and Tasks lines if they cause build issues
+          (Get-Content $issPath) | ForEach-Object {
+              if ($_ -match 'SetupIconFile=') {
+                  "; $_"
+              } elseif ($_ -match 'Tasks=') {
+                  "; $_"
+              } else {
+                  $_
+              }
+          } | Set-Content $issPath
+
+          # Run Inno Setup compiler
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issPath
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: mnyazi-dream-decor-installer
           path: |
-            Output/Mnyazi_Dream_Decor_Tracker_Setup.exe
+            Mnyazi_Tracker_Package/Output/Mnyazi_Dream_Decor_Tracker_Setup.exe
             dist/main.exe
+
 
 
 
