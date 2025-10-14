@@ -33,6 +33,7 @@ jobs:
         run: pyinstaller --noconfirm --onefile --windowed --add-data "assets;assets" main.py
 
       - name: Prepare staging
+        shell: cmd
         run: |
           rmdir /s /q installer_staging || exit 0
           mkdir installer_staging
@@ -41,6 +42,7 @@ jobs:
           xcopy /e /y assets installer_staging\files\assets
 
       - name: Run Inno Setup
+        shell: cmd
         run: |
           "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" installer_script.iss
 
