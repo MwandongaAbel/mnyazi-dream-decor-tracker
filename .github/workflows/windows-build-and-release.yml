@@ -1,4 +1,3 @@
-
 name: Build Windows Installer & Release
 
 on:
@@ -6,16 +5,15 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-permissions:
-  contents: write
-  packages: write
-  actions: write
-
 jobs:
-  build-and-release:
+  build-windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: Mnyazi_Tracker_Package
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -28,15 +26,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Inno Setup (Chocolatey)
-        run: |
-          choco install innosetup -y || echo "Inno Setup may already be installed or choco is unavailable"
+      - name: Install Inno Setup
+        run: choco install innosetup -y
 
-      - name: Run PyInstaller to build main.exe
-        run: |
-          pyinstaller --noconfirm --onefile --windowed --add-data "assets;assets" main.py
+      - name: Run PyInstaller
+        run: pyinstaller --noconfirm --onefile --windowed --add-data "assets;assets" main.py
 
-      - name: Prepare staging for installer
+      - name: Prepare staging
         run: |
           rmdir /s /q installer_staging || exit 0
           mkdir installer_staging
@@ -44,24 +40,14 @@ jobs:
           copy /y dist\main.exe installer_staging\files\main.exe
           xcopy /e /y assets installer_staging\files\assets
 
-      - name: Build installer with Inno Setup
+      - name: Run Inno Setup
         run: |
-          "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" installer_script.iss || "%ProgramFiles%\Inno Setup 6\ISCC.exe" installer_script.iss
+          "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" installer_script.iss
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: v${{ github.run_number }}
-          release_name: "Mnyazi Dream Decor Tracker - ${{ github.run_number }}"
-          draft: false
-          prerelease: false
-
-      - name: Upload main.exe to Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            dist\main.exe
-            Output\Mnyazi_Dream_Decor_Tracker_Setup.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: mnyazi-dream-decor-installer
+          path: |
+            Mnyazi_Tracker_Package\Output\Mnyazi_Dream_Decor_Tracker_Setup.exe
+            Mnyazi_Tracker_Package\dist\main.exe
