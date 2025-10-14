@@ -1,4 +1,4 @@
-name: Build Windows Installer & Release
+name: Build Windows Installer
 
 on:
   push:
@@ -8,9 +8,6 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: Mnyazi_Tracker_Package
 
     steps:
       - name: Checkout repository
@@ -32,24 +29,32 @@ jobs:
       - name: Run PyInstaller
         run: pyinstaller --noconfirm --onefile --windowed --add-data "assets;assets" main.py
 
-      - name: Prepare staging
+      - name: Prepare Staging Folder
         shell: cmd
         run: |
-          rmdir /s /q installer_staging || exit 0
+          echo Cleaning and creating staging folder...
+          if exist installer_staging rmdir /s /q installer_staging
           mkdir installer_staging
           mkdir installer_staging\files
           copy /y dist\main.exe installer_staging\files\main.exe
-          xcopy /e /y assets installer_staging\files\assets
+          xcopy /e /y assets installer_staging\files\assets\
 
-      - name: Run Inno Setup
+      - name: Run Inno Setup Compiler
         shell: cmd
         run: |
-          "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" installer_script.iss
+          echo Running Inno Setup Compiler...
+          if exist "Mnyazi_Tracker_Package\installer_script.iss" (
+            "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" "Mnyazi_Tracker_Package\installer_script.iss"
+          ) else (
+            echo ERROR: installer_script.iss not found in Mnyazi_Tracker_Package folder!
+            exit /b 1
+          )
 
-      - name: Upload Artifacts
+      - name: Upload Installer Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mnyazi-dream-decor-installer
+          name: Mnyazi_Dream_Decor_Installer
           path: |
-            Mnyazi_Tracker_Package\Output\Mnyazi_Dream_Decor_Tracker_Setup.exe
-            Mnyazi_Tracker_Package\dist\main.exe
+            Mnyazi_Tracker_Package\Output\*.exe
+            dist\main.exe
+
