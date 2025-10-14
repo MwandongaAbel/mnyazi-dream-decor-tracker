@@ -8,7 +8,6 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,42 +18,40 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: python -m pip install --upgrade pip
 
       - name: Install Inno Setup
         run: choco install innosetup -y
 
       - name: Run PyInstaller
-        run: pyinstaller --noconfirm --onefile --windowed --add-data "assets;assets" main.py
+        run: pyinstaller --noconfirm --onefile --windowed --add-data "Mnyazi_Tracker_Package/assets;assets" Mnyazi_Tracker_Package/main.py
 
-      - name: Prepare Staging Folder
-        shell: cmd
+      - name: Prepare staging
+        shell: pwsh
         run: |
-          echo Cleaning and creating staging folder...
-          if exist installer_staging rmdir /s /q installer_staging
-          mkdir installer_staging
-          mkdir installer_staging\files
-          copy /y dist\main.exe installer_staging\files\main.exe
-          xcopy /e /y assets installer_staging\files\assets\
+          if (Test-Path "installer_staging") { Remove-Item -Recurse -Force installer_staging }
+          New-Item -ItemType Directory -Path installer_staging | Out-Null
+          New-Item -ItemType Directory -Path installer_staging/files | Out-Null
+          Copy-Item -Path "dist/main.exe" -Destination "installer_staging/files/main.exe"
+          Copy-Item -Path "Mnyazi_Tracker_Package/assets" -Destination "installer_staging/files/assets" -Recurse
 
-      - name: Run Inno Setup Compiler
-        shell: cmd
+      - name: Run Inno Setup
+        shell: pwsh
         run: |
-          echo Running Inno Setup Compiler...
-          if exist "Mnyazi_Tracker_Package\installer_script.iss" (
-            "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" "Mnyazi_Tracker_Package\installer_script.iss"
-          ) else (
-            echo ERROR: installer_script.iss not found in Mnyazi_Tracker_Package folder!
-            exit /b 1
-          )
+          $issPath = "Mnyazi_Tracker_Package/installer_script.iss"
+          if (Test-Path $issPath) {
+            & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" $issPath
+          } else {
+            Write-Host "❌ installer_script.iss not found at $issPath"
+            exit 1
+          }
 
-      - name: Upload Installer Artifact
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Mnyazi_Dream_Decor_Installer
+          name: mnyazi-dream-decor-installer
           path: |
-            Mnyazi_Tracker_Package\Output\*.exe
-            dist\main.exe
+            Output/Mnyazi_Dream_Decor_Tracker_Setup.exe
+            dist/main.exe
+
 
