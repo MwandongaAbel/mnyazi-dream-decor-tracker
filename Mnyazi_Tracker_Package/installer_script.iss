@@ -8,7 +8,7 @@ OutputDir=Output
 OutputBaseFilename=Mnyazi_Dream_Decor_Tracker_Setup
 Compression=lzma
 SolidCompression=yes
-SetupIconFile=Mnyazi_Tracker_Package\assets\app_icon.ico
+;SetupIconFile=Mnyazi_Tracker_Package\assets\app_icon.ico
 WizardStyle=modern
 UninstallDisplayIcon={app}\main.exe
 
