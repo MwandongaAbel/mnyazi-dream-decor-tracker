@@ -1,0 +1,7 @@
+pyrebase4
+firebase-admin
+tkintertable
+Pillow
+openpyxl
+reportlab
+pyinstaller
