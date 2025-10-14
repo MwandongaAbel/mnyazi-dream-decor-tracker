@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # 1️⃣ Checkout repo
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -37,10 +37,10 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup --yes
 
-      # 6️⃣ Compile installer
+      # 6️⃣ Compile installer (fixed PowerShell syntax)
       - name: Compile installer
         run: |
-          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer_script.iss
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer_script.iss"
         working-directory: Mnyazi_Tracker_Package
 
       # 7️⃣ Upload installer as artifact
@@ -49,6 +49,7 @@ jobs:
         with:
           name: Mnyazi_Tracker_Installer
           path: Mnyazi_Tracker_Package\Output\Mnyazi_Tracker_Installer.exe
+
 
 
 
