@@ -12,7 +12,7 @@ SetupIconFile=Mnyazi_Tracker_Package\assets\app_icon.ico
 UninstallDisplayIcon={app}\Mnyazi Dream Decor Tracker.exe
 
 [Files]
-Source: "dist\Mnyazi_Tracker_Package.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\main.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Mnyazi Dream Decor Tracker"; Filename: "{app}\Mnyazi_Tracker_Package.exe"
